@@ -1,0 +1,26 @@
+name: moba_z
+description: "Mini MOBA Arena - Browser P2P multiplayer game built with Flutter Web and Flame Engine."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.12.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flame: ^1.37.0
+  vector_math: ^2.1.4
+  peerdart: ^0.5.6
+  uuid: ^4.5.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
+    - assets/images/warior/
