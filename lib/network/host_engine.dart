@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'package:vector_math/vector_math_64.dart';
 import '../utils/constants.dart';
 import '../utils/math.dart';
+import '../utils/config_manager.dart';
 import 'network_manager.dart';
 import 'packet_parser.dart';
 
@@ -34,6 +36,15 @@ class HostEngine {
     _network.sendPacket(GamePacket(
       type: PacketType.gameStart,
       data: PacketParser.encodeGameStart(_generateSeed()),
+    ));
+    
+    // Also send the config state
+    _network.sendPacket(GamePacket(
+      type: PacketType.configSync,
+      data: PacketParser.encodeConfigSync(
+        jsonEncode(ConfigManager.extractGameConfig()),
+        jsonEncode(ConfigManager.extractHeroConfig())
+      ),
     ));
 
     for (int i = 0; i < playerSelections.length; i++) {
@@ -658,9 +669,17 @@ class HostEngine {
         'hp': s.hp, 'maxHp': s.maxHp, 'alive': s.alive,
       });
     }
+    final projData = <Map<String, dynamic>>[];
+    for (final p in _projectiles) {
+      projData.add({
+        'id': p.id, 'type': p.type.index, 'team': p.team.index,
+        'x': p.position.x, 'y': p.position.y,
+        'angle': GameMath.angleTo(p.previousPosition, p.position),
+      });
+    }
     _network.broadcastToClients(GamePacket(
       type: PacketType.fullState,
-      data: PacketParser.encodeFullState(entityData, structData, _gameTime),
+      data: PacketParser.encodeFullState(entityData, structData, projData, _gameTime),
     ));
   }
 

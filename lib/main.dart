@@ -1,9 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'ui/lobby.dart';
+import 'utils/config_manager.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  try {
+    await ConfigManager.loadConfig();
+  } catch (e) {
+    // A failed config load must not prevent the game from starting;
+    // defaults from GameConstants are used instead.
+    debugPrint('Config load failed, using defaults: $e');
+  }
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.landscapeLeft,
     DeviceOrientation.landscapeRight,

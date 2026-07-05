@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'package:vector_math/vector_math_64.dart';
 import '../utils/constants.dart';
 import '../utils/math.dart';
+import '../utils/config_manager.dart';
 import 'network_manager.dart';
 import 'packet_parser.dart';
 
@@ -40,6 +42,9 @@ class ClientEngine {
     switch (packet.type) {
       case PacketType.gameStart:
         _handleGameStart(packet.data);
+        break;
+      case PacketType.configSync:
+        _handleConfigSync(packet.data);
         break;
       case PacketType.fullState:
         _handleFullState(packet.data);
@@ -87,6 +92,19 @@ class ClientEngine {
     _gameStarted = true;
   }
 
+  void _handleConfigSync(String data) {
+    final parsed = PacketParser.parseConfigSync(data);
+    if (parsed == null) return;
+    try {
+      final gameConfig = jsonDecode(parsed['game']!);
+      final heroConfig = jsonDecode(parsed['hero']!);
+      ConfigManager.applyGameConfig(gameConfig);
+      ConfigManager.applyHeroConfig(heroConfig);
+    } catch (e) {
+      print('Config sync error: $e');
+    }
+  }
+
   void _handleFullState(String data) {
     final parsed = PacketParser.parseFullState(data);
     if (parsed == null) return;
@@ -94,6 +112,7 @@ class ClientEngine {
     _gameTime = parsed['gameTime'] as double;
     final entityList = parsed['entities'] as List<dynamic>;
     final structList = parsed['structures'] as List<dynamic>;
+    final projList = parsed['projectiles'] as List<dynamic>? ?? [];
 
     for (final e in entityList) {
       final id = e['id'] as int;
@@ -138,10 +157,16 @@ class ClientEngine {
           },
         );
         hero.previousPosition = hero.position.clone();
-        hero.position = pos.clone();
+        if (_heroes.isNotEmpty && _localHeroIndex >= 0 && _localHeroIndex < _heroes.length && hero.id == _heroes[_localHeroIndex].id) {
+          if (hero.position.distanceTo(pos) > 150) {
+            hero.position = pos.clone();
+          }
+        } else {
+          hero.position = pos.clone();
+          hero.angle = angle;
+        }
         hero.hp = hp;
         hero.maxHp = maxHp;
-        hero.angle = angle;
         hero.alive = alive;
         hero.isAttacking = (e['atk'] as bool?) ?? false;
       }
@@ -175,6 +200,18 @@ class ClientEngine {
 
     _minions.removeWhere((m) => !entityList.any((e) => e['id'] == m.id));
     _heroes.removeWhere((h) => !entityList.any((e) => e['id'] == h.id));
+
+    _projectiles.clear();
+    for (final p in projList) {
+      _projectiles.add(ClientProjectileState(
+        id: p['id'] as int,
+        type: ProjectileType.values[p['type'] as int],
+        team: Team.values[p['team'] as int],
+        position: Vector2(p['x'] as double, p['y'] as double),
+        angle: p['angle'] as double,
+        alive: true,
+      ));
+    }
   }
 
   void _handlePosition(String data) {
@@ -189,8 +226,15 @@ class ClientEngine {
         hp: 0, maxHp: 0, alive: true,
       ),
     );
-    hero.position = Vector2(parsed['x'] as double, parsed['y'] as double);
-    hero.angle = parsed['angle'] as double;
+    if (_heroes.isNotEmpty && _localHeroIndex >= 0 && _localHeroIndex < _heroes.length && hero.id == _heroes[_localHeroIndex].id) {
+      final pos = Vector2(parsed['x'] as double, parsed['y'] as double);
+      if (hero.position.distanceTo(pos) > 150) {
+        hero.position = pos;
+      }
+    } else {
+      hero.position = Vector2(parsed['x'] as double, parsed['y'] as double);
+      hero.angle = parsed['angle'] as double;
+    }
   }
 
   void _handleHealth(String data) {
@@ -333,7 +377,7 @@ class ClientEngine {
     }
   }
 
-  void update(double dt) {
+  void update(double dt, double moveX, double moveY) {
     _gameTime += dt;
     for (final h in _heroes) {
       if (!h.alive && h.respawnTimer > 0) {
@@ -341,6 +385,20 @@ class ClientEngine {
       }
       for (final key in h.cooldowns.keys) {
         h.cooldowns[key] = (h.cooldowns[key]! - dt).clamp(0.0, 99.0);
+      }
+    }
+
+    if (_localHeroIndex >= 0 && _localHeroIndex < _heroes.length) {
+      final hero = _heroes[_localHeroIndex];
+      if (hero.alive && (moveX != 0 || moveY != 0)) {
+        final heroDef = HeroDefinitions.heroes[hero.heroKey];
+        if (heroDef != null) {
+          final moveSpeed = (heroDef['moveSpeed'] as num).toDouble();
+          final dir = Vector2(moveX, moveY)..normalize();
+          final newPos = hero.position + dir * moveSpeed * dt;
+          hero.position = GameMath.clampToWorld(newPos, GameConstants.worldWidth, GameConstants.worldHeight, 20);
+          hero.angle = GameMath.angleTo(Vector2.zero(), dir);
+        }
       }
     }
   }
@@ -446,7 +504,7 @@ class ClientStructureState {
 class ClientProjectileState {
   final int id;
   Vector2 position;
-  Vector2 velocity;
+  double angle;
   ProjectileType type;
   Team team;
   bool alive;
@@ -454,7 +512,7 @@ class ClientProjectileState {
   ClientProjectileState({
     required this.id,
     required this.position,
-    required this.velocity,
+    required this.angle,
     required this.type,
     required this.team,
     required this.alive,

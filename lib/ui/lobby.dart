@@ -7,6 +7,7 @@ import '../game/moba_game.dart';
 import 'joystick.dart';
 import 'skill_buttons.dart';
 import 'hud.dart';
+import 'admin_screen.dart';
 
 class LobbyScreen extends StatefulWidget {
   const LobbyScreen({super.key});
@@ -69,10 +70,20 @@ class _LobbyScreenState extends State<LobbyScreen> with SingleTickerProviderStat
     _network = NetworkManager(
       playerName: _playerName,
       onConnectionChanged: (connected) {
-        if (connected && mounted) {
+        if (connected && mounted && _network != null) {
           setState(() {
-            _statusMessage = 'Waiting for opponent...';
+            if (_network!.connectionCount > 0) {
+              _opponentJoined = true;
+              final peerIds = _network!.connectedPeerIds;
+              if (peerIds.isNotEmpty) {
+                _clientPeerId = peerIds.first;
+              }
+              _statusMessage = 'Opponent joined! Select your hero.';
+            } else {
+              _statusMessage = 'Waiting for opponent...';
+            }
           });
+          _checkStartGame();
         }
       },
     );
@@ -364,6 +375,21 @@ class _LobbyScreenState extends State<LobbyScreen> with SingleTickerProviderStat
               ),
             ),
           ],
+        ),
+        const SizedBox(height: 32),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.purple,
+            padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 16),
+            textStyle: const TextStyle(fontSize: 20),
+          ),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const AdminScreen()),
+            );
+          },
+          child: const Text('Admin / Customization'),
         ),
       ],
     );

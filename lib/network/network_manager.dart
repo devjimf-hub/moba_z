@@ -35,6 +35,8 @@ class NetworkManager {
   double get ping => _avgPing;
   double get jitter => _jitter;
   int get connectionCount => _connections.length;
+  List<String> get connectedPeerIds =>
+      _connections.values.map((c) => c.peer).whereType<String>().toList();
 
   NetworkManager({
     required String playerName,

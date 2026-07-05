@@ -21,6 +21,7 @@ enum PacketType {
   gold,
   respawn,
   ping,
+  configSync,
 }
 
 class GamePacket {
@@ -243,7 +244,7 @@ class PacketParser {
     };
   }
 
-  static String encodeFullState(List<Map<String, dynamic>> entities, List<Map<String, dynamic>> structures, double gameTime) {
+  static String encodeFullState(List<Map<String, dynamic>> entities, List<Map<String, dynamic>> structures, List<Map<String, dynamic>> projectiles, double gameTime) {
     final sb = StringBuffer();
     sb.write('FS:${gameTime.toStringAsFixed(1)}');
     for (final e in entities) {
@@ -251,6 +252,9 @@ class PacketParser {
     }
     for (final s in structures) {
       sb.write('|T:${s['id']}:${s['type']}:${s['team']}:${s['x'].toStringAsFixed(1)}:${s['y'].toStringAsFixed(1)}:${s['hp'].toStringAsFixed(1)}:${s['maxHp'].toStringAsFixed(1)}:${s['alive'] == true ? 1 : 0}');
+    }
+    for (final p in projectiles) {
+      sb.write('|J:${p['id']}:${p['type']}:${p['team']}:${p['x'].toStringAsFixed(1)}:${p['y'].toStringAsFixed(1)}:${p['angle'].toStringAsFixed(2)}');
     }
     return sb.toString();
   }
@@ -261,6 +265,7 @@ class PacketParser {
     final gameTime = double.tryParse(parts[0].replaceFirst('FS:', '')) ?? 0;
     final entities = <Map<String, dynamic>>[];
     final structures = <Map<String, dynamic>>[];
+    final projectiles = <Map<String, dynamic>>[];
     for (int i = 1; i < parts.length; i++) {
       final p = parts[i].split(':');
       if (p.length < 2) continue;
@@ -288,12 +293,22 @@ class PacketParser {
           'maxHp': double.parse(p[7]),
           'alive': p[8] == '1',
         });
+      } else if (p[0] == 'J') {
+        projectiles.add({
+          'id': int.parse(p[1]),
+          'type': int.parse(p[2]),
+          'team': int.parse(p[3]),
+          'x': double.parse(p[4]),
+          'y': double.parse(p[5]),
+          'angle': double.parse(p[6]),
+        });
       }
     }
     return {
       'gameTime': gameTime,
       'entities': entities,
       'structures': structures,
+      'projectiles': projectiles,
     };
   }
 
@@ -352,6 +367,21 @@ class PacketParser {
       'seq': int.parse(parts[0]),
       'sent': int.parse(parts[1]),
       'received': DateTime.now().millisecondsSinceEpoch,
+    };
+  }
+
+  static String encodeConfigSync(String gameConfigJson, String heroConfigJson) {
+    // Escape or encode differently if needed, but since we are just passing json, we can split by a rare delimiter.
+    return 'CS:$gameConfigJson|#|$heroConfigJson';
+  }
+
+  static Map<String, String>? parseConfigSync(String data) {
+    final stripped = data.replaceFirst('CS:', '');
+    final parts = stripped.split('|#|');
+    if (parts.length < 2) return null;
+    return {
+      'game': parts[0],
+      'hero': parts[1],
     };
   }
 }

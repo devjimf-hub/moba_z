@@ -100,7 +100,9 @@ class MobaGame {
         _gameOverTriggered = true;
       }
     } else if (clientEngine != null) {
-      clientEngine!.update(dt);
+      final sendMx = isMirrored ? -_moveX : _moveX;
+      final sendMy = isMirrored ? -_moveY : _moveY;
+      clientEngine!.update(dt, sendMx, sendMy);
       if (clientEngine!.gameOver && !_gameOverTriggered) {
         _gameWinner = clientEngine!.winner;
         _gameOverTriggered = true;
@@ -387,6 +389,8 @@ class MobaGame {
           48,
           struct.team,
         ));
+      } else {
+        _renderDestroyedStructure(canvas, struct);
       }
     }
 
@@ -443,6 +447,19 @@ class MobaGame {
           48,
           hero.team,
         ));
+      }
+    }
+
+    for (final proj in engine.projectiles) {
+      if (proj.alive) {
+        ProceduralAssets.drawProjectile(
+          canvas,
+          proj.position,
+          proj.angle,
+          proj.type,
+          proj.team,
+          isMirrored: isMirrored,
+        );
       }
     }
   }
@@ -592,7 +609,8 @@ class MobaGame {
           : TeamColors.redTeam;
       final dotPaint = Paint()
         ..color = entity.alive ? dotColor : dotColor.withValues(alpha: 0.3);
-      final dotSize = entity is HeroState ? 4.0 : 2.0;
+      final isHero = entity is HeroState || entity is ClientHeroState;
+      final dotSize = isHero ? 4.0 : 2.0;
       canvas.drawCircle(ui.Offset(ex, ey), dotSize, dotPaint);
     }
 

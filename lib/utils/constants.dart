@@ -3,8 +3,8 @@ import 'dart:ui';
 class GameConstants {
   GameConstants._();
 
-  static const double worldWidth = 3200.0;
-  static const double worldHeight = 3200.0;
+  static double worldWidth = 3200.0;
+  static double worldHeight = 3200.0;
 
   static const double tileWidth = 48.0;
   static const double tileHeight = 48.0;
@@ -16,59 +16,59 @@ class GameConstants {
   static const double riverWidth = 200.0;
 
   // Diagonal MOBA layout: Blue bottom-left, Red top-right
-  static const double blueBaseX = 400.0;
-  static const double blueBaseY = 2800.0;
-  static const double redBaseX = 2800.0;
-  static const double redBaseY = 400.0;
+  static double blueBaseX = 400.0;
+  static double blueBaseY = 2800.0;
+  static double redBaseX = 2800.0;
+  static double redBaseY = 400.0;
 
-  static const double crystalBlueX = 400.0;
-  static const double crystalBlueY = 2800.0;
-  static const double crystalRedX = 2800.0;
-  static const double crystalRedY = 400.0;
+  static double crystalBlueX = 400.0;
+  static double crystalBlueY = 2800.0;
+  static double crystalRedX = 2800.0;
+  static double crystalRedY = 400.0;
 
-  static const double turretOuterRange = 500.0;
-  static const double turretInnerRange = 400.0;
-  static const double turretBaseRange = 350.0;
+  static double turretOuterRange = 500.0;
+  static double turretInnerRange = 400.0;
+  static double turretBaseRange = 350.0;
 
-  static const double turretOuterHp = 3000.0;
-  static const double turretInnerHp = 4000.0;
-  static const double turretBaseHp = 5000.0;
+  static double turretOuterHp = 3000.0;
+  static double turretInnerHp = 4000.0;
+  static double turretBaseHp = 5000.0;
 
-  static const double turretDamage = 120.0;
-  static const double turretAttackSpeed = 1.0;
+  static double turretDamage = 120.0;
+  static double turretAttackSpeed = 1.0;
 
-  static const double crystalHp = 8000.0;
+  static double crystalHp = 8000.0;
 
-  static const double minionSpawnInterval = 20.0;
-  static const int meleeMinionsPerWave = 3;
-  static const int rangedMinionsPerWave = 2;
-  static const int siegeWaveInterval = 3;
+  static double minionSpawnInterval = 20.0;
+  static int meleeMinionsPerWave = 3;
+  static int rangedMinionsPerWave = 2;
+  static int siegeWaveInterval = 3;
 
-  static const double meleeMinionHp = 600.0;
-  static const double meleeMinionDamage = 30.0;
-  static const double meleeMinionSpeed = 120.0;
-  static const double meleeMinionRange = 60.0;
+  static double meleeMinionHp = 600.0;
+  static double meleeMinionDamage = 30.0;
+  static double meleeMinionSpeed = 120.0;
+  static double meleeMinionRange = 60.0;
 
-  static const double rangedMinionHp = 400.0;
-  static const double rangedMinionDamage = 50.0;
-  static const double rangedMinionSpeed = 110.0;
-  static const double rangedMinionRange = 250.0;
+  static double rangedMinionHp = 400.0;
+  static double rangedMinionDamage = 50.0;
+  static double rangedMinionSpeed = 110.0;
+  static double rangedMinionRange = 250.0;
 
-  static const double siegeMinionHp = 1000.0;
-  static const double siegeMinionDamage = 80.0;
-  static const double siegeMinionSpeed = 90.0;
-  static const double siegeMinionRange = 300.0;
+  static double siegeMinionHp = 1000.0;
+  static double siegeMinionDamage = 80.0;
+  static double siegeMinionSpeed = 90.0;
+  static double siegeMinionRange = 300.0;
 
-  static const double minionAggroRange = 300.0;
-  static const double minionLeashRange = 600.0;
+  static double minionAggroRange = 300.0;
+  static double minionLeashRange = 600.0;
 
-  static const double baseGoldPerSecond = 2.0;
-  static const int goldPerMinionKill = 40;
-  static const int goldPerTurretKill = 250;
-  static const int goldPerHeroKill = 300;
+  static double baseGoldPerSecond = 2.0;
+  static int goldPerMinionKill = 40;
+  static int goldPerTurretKill = 250;
+  static int goldPerHeroKill = 300;
 
-  static const double respawnBaseTime = 5.0;
-  static const double respawnTimePerLevel = 2.0;
+  static double respawnBaseTime = 5.0;
+  static double respawnTimePerLevel = 2.0;
 
   static const double cameraZoomMin = 0.5;
   static const double cameraZoomMax = 1.5;
@@ -150,7 +150,7 @@ class TeamColors {
 class HeroDefinitions {
   HeroDefinitions._();
 
-  static const Map<String, Map<String, dynamic>> heroes = {
+  static Map<String, Map<String, dynamic>> heroes = {
     'warrior': {
       'name': 'Blade Knight',
       'role': HeroRole.warrior,
