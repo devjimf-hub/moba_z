@@ -25,3 +25,8 @@ flutter:
   assets:
     - assets/images/
     - assets/images/warior/
+    - assets/images/mage/
+    - assets/images/assassin/
+    - assets/images/marksman/
+    - assets/images/support/
+    - assets/images/tank/

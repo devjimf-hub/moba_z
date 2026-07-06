@@ -250,96 +250,114 @@ class MobaGame {
 
   void _renderHostState(Canvas canvas) {
     final engine = hostEngine!;
+    final List<_YRenderObject> queue = [];
+
     for (final struct in engine.structures) {
       if (struct.alive) {
-        if (struct.type == StructureType.crystal) {
-          ProceduralAssets.drawCrystal(
+        final double sortY = struct.type == StructureType.crystal
+            ? struct.position.y + 45.0
+            : struct.position.y + 40.0;
+        queue.add(_YRenderObject(sortY, (canvas) {
+          if (struct.type == StructureType.crystal) {
+            ProceduralAssets.drawCrystal(
+              canvas,
+              struct.position,
+              struct.team,
+              true,
+              struct.hp / struct.maxHp,
+              _animTime,
+              isMirrored: isMirrored,
+            );
+          } else {
+            ProceduralAssets.drawTurret(
+              canvas,
+              struct.position,
+              struct.team,
+              struct.type,
+              true,
+              _animTime,
+              isMirrored: isMirrored,
+            );
+          }
+          _drawUpright(canvas, struct.position, () => ProceduralAssets.drawHealthBar(
             canvas,
             struct.position,
+            struct.hp,
+            struct.maxHp,
+            48,
             struct.team,
-            true,
-            struct.hp / struct.maxHp,
-            _animTime,
-            isMirrored: isMirrored,
-          );
-        } else {
-          ProceduralAssets.drawTurret(
-            canvas,
-            struct.position,
-            struct.team,
-            struct.type,
-            true,
-            _animTime,
-            isMirrored: isMirrored,
-          );
-        }
-        _drawUpright(canvas, struct.position, () => ProceduralAssets.drawHealthBar(
-          canvas,
-          struct.position,
-          struct.hp,
-          struct.maxHp,
-          48,
-          struct.team,
-        ));
+          ));
+        }));
       } else {
-        _renderDestroyedStructure(canvas, struct);
+        queue.add(_YRenderObject(struct.position.y - 15.0, (canvas) {
+          _renderDestroyedStructure(canvas, struct);
+        }));
       }
     }
 
     for (final minion in engine.minions) {
       if (minion.alive) {
-        final m = minion as dynamic;
-        final bool isAttacking = m.attackTimer > 0;
-        final bool isMoving = !isAttacking;
-        ProceduralAssets.drawMinion(
-          canvas,
-          minion.type,
-          minion.position,
-          minion.angle,
-          minion.team,
-          true,
-          _animTime,
-          isMoving: isMoving,
-          isAttacking: isAttacking,
-          isMirrored: isMirrored,
-        );
-        _drawUpright(canvas, minion.position, () => ProceduralAssets.drawHealthBar(
-          canvas,
-          minion.position,
-          minion.hp,
-          minion.maxHp,
-          30,
-          minion.team,
-        ));
+        queue.add(_YRenderObject(minion.position.y, (canvas) {
+          final m = minion as dynamic;
+          final bool isAttacking = m.attackTimer > 0;
+          final bool isMoving = !isAttacking;
+          ProceduralAssets.drawMinion(
+            canvas,
+            minion.type,
+            minion.position,
+            minion.angle,
+            minion.team,
+            true,
+            _animTime,
+            isMoving: isMoving,
+            isAttacking: isAttacking,
+            isMirrored: isMirrored,
+          );
+          _drawUpright(canvas, minion.position, () => ProceduralAssets.drawHealthBar(
+            canvas,
+            minion.position,
+            minion.hp,
+            minion.maxHp,
+            30,
+            minion.team,
+          ));
+        }));
       }
     }
 
     for (final hero in engine.heroes) {
       if (hero.alive) {
-        final h = hero as dynamic;
-        final bool isAttacking = h.attackCooldown > 0;
-        final bool isMoving = h.previousPosition != null ? (h.position - h.previousPosition).length2 > 0.01 : false;
-        ProceduralAssets.drawHero(
-          canvas,
-          hero.heroKey,
-          hero.position,
-          hero.angle,
-          _animTime,
-          true,
-          hero.team,
-          isMoving: isMoving,
-          isAttacking: isAttacking,
-          isMirrored: isMirrored,
-        );
-        _drawUpright(canvas, hero.position, () => ProceduralAssets.drawHealthBar(
-          canvas,
-          hero.position,
-          hero.hp,
-          hero.maxHp,
-          48,
-          hero.team,
-        ));
+        queue.add(_YRenderObject(hero.position.y, (canvas) {
+          final h = hero as dynamic;
+          final bool isAttacking = h.attackCooldown > 0;
+          final bool isMoving = h.previousPosition != null ? (h.position - h.previousPosition).length2 > 0.01 : false;
+          ProceduralAssets.drawHero(
+            canvas,
+            hero.heroKey,
+            hero.position,
+            hero.angle,
+            _animTime,
+            true,
+            hero.team,
+            isMoving: isMoving,
+            isAttacking: isAttacking,
+            isMirrored: isMirrored,
+          );
+          _drawUpright(canvas, hero.position, () => ProceduralAssets.drawHealthBar(
+            canvas,
+            hero.position,
+            hero.hp,
+            hero.maxHp,
+            48,
+            hero.team,
+          ));
+        }));
       }
+    }
+
+    queue.sort((a, b) => a.y.compareTo(b.y));
+    for (final item in queue) {
+      item.render(canvas);
     }
 
     for (final proj in engine.projectiles) {
@@ -358,96 +376,114 @@ class MobaGame {
 
   void _renderClientState(Canvas canvas) {
     final engine = clientEngine!;
+    final List<_YRenderObject> queue = [];
+
     for (final struct in engine.structures) {
       if (struct.alive) {
-        if (struct.type == StructureType.crystal) {
-          ProceduralAssets.drawCrystal(
+        final double sortY = struct.type == StructureType.crystal
+            ? struct.position.y + 45.0
+            : struct.position.y + 40.0;
+        queue.add(_YRenderObject(sortY, (canvas) {
+          if (struct.type == StructureType.crystal) {
+            ProceduralAssets.drawCrystal(
+              canvas,
+              struct.position,
+              struct.team,
+              true,
+              struct.hp / struct.maxHp,
+              _animTime,
+              isMirrored: isMirrored,
+            );
+          } else {
+            ProceduralAssets.drawTurret(
+              canvas,
+              struct.position,
+              struct.team,
+              struct.type,
+              true,
+              _animTime,
+              isMirrored: isMirrored,
+            );
+          }
+          _drawUpright(canvas, struct.position, () => ProceduralAssets.drawHealthBar(
             canvas,
             struct.position,
+            struct.hp,
+            struct.maxHp,
+            48,
             struct.team,
-            true,
-            struct.hp / struct.maxHp,
-            _animTime,
-            isMirrored: isMirrored,
-          );
-        } else {
-          ProceduralAssets.drawTurret(
-            canvas,
-            struct.position,
-            struct.team,
-            struct.type,
-            true,
-            _animTime,
-            isMirrored: isMirrored,
-          );
-        }
-        _drawUpright(canvas, struct.position, () => ProceduralAssets.drawHealthBar(
-          canvas,
-          struct.position,
-          struct.hp,
-          struct.maxHp,
-          48,
-          struct.team,
-        ));
+          ));
+        }));
       } else {
-        _renderDestroyedStructure(canvas, struct);
+        queue.add(_YRenderObject(struct.position.y - 15.0, (canvas) {
+          _renderDestroyedStructure(canvas, struct);
+        }));
       }
     }
 
     for (final minion in engine.minions) {
       if (minion.alive) {
-        final m = minion as dynamic;
-        final bool isAttacking = m.isAttacking == true;
-        final bool isMoving = m.previousPosition != null ? (m.position - m.previousPosition).length2 > 0.01 : false;
-        ProceduralAssets.drawMinion(
-          canvas,
-          minion.type,
-          minion.position,
-          minion.angle,
-          minion.team,
-          true,
-          _animTime,
-          isMoving: isMoving,
-          isAttacking: isAttacking,
-          isMirrored: isMirrored,
-        );
-        _drawUpright(canvas, minion.position, () => ProceduralAssets.drawHealthBar(
-          canvas,
-          minion.position,
-          minion.hp,
-          minion.maxHp,
-          30,
-          minion.team,
-        ));
+        queue.add(_YRenderObject(minion.position.y, (canvas) {
+          final m = minion as dynamic;
+          final bool isAttacking = m.isAttacking == true;
+          final bool isMoving = m.previousPosition != null ? (m.position - m.previousPosition).length2 > 0.01 : false;
+          ProceduralAssets.drawMinion(
+            canvas,
+            minion.type,
+            minion.position,
+            minion.angle,
+            minion.team,
+            true,
+            _animTime,
+            isMoving: isMoving,
+            isAttacking: isAttacking,
+            isMirrored: isMirrored,
+          );
+          _drawUpright(canvas, minion.position, () => ProceduralAssets.drawHealthBar(
+            canvas,
+            minion.position,
+            minion.hp,
+            minion.maxHp,
+            30,
+            minion.team,
+          ));
+        }));
       }
     }
 
     for (final hero in engine.heroes) {
       if (hero.alive) {
-        final h = hero as dynamic;
-        final bool isAttacking = h.isAttacking == true;
-        final bool isMoving = h.previousPosition != null ? (h.position - h.previousPosition).length2 > 0.01 : false;
-        ProceduralAssets.drawHero(
-          canvas,
-          hero.heroKey,
-          hero.position,
-          hero.angle,
-          _animTime,
-          true,
-          hero.team,
-          isMoving: isMoving,
-          isAttacking: isAttacking,
-          isMirrored: isMirrored,
-        );
-        _drawUpright(canvas, hero.position, () => ProceduralAssets.drawHealthBar(
-          canvas,
-          hero.position,
-          hero.hp,
-          hero.maxHp,
-          48,
-          hero.team,
-        ));
+        queue.add(_YRenderObject(hero.position.y, (canvas) {
+          final h = hero as dynamic;
+          final bool isAttacking = h.isAttacking == true;
+          final bool isMoving = h.previousPosition != null ? (h.position - h.previousPosition).length2 > 0.01 : false;
+          ProceduralAssets.drawHero(
+            canvas,
+            hero.heroKey,
+            hero.position,
+            hero.angle,
+            _animTime,
+            true,
+            hero.team,
+            isMoving: isMoving,
+            isAttacking: isAttacking,
+            isMirrored: isMirrored,
+          );
+          _drawUpright(canvas, hero.position, () => ProceduralAssets.drawHealthBar(
+            canvas,
+            hero.position,
+            hero.hp,
+            hero.maxHp,
+            48,
+            hero.team,
+          ));
+        }));
       }
+    }
+
+    queue.sort((a, b) => a.y.compareTo(b.y));
+    for (final item in queue) {
+      item.render(canvas);
     }
 
     for (final proj in engine.projectiles) {
@@ -755,4 +791,10 @@ class HitEffect {
   double timer;
 
   HitEffect({required this.position, required this.color, required this.timer});
+}
+
+class _YRenderObject {
+  final double y;
+  final void Function(Canvas) render;
+  _YRenderObject(this.y, this.render);
 }

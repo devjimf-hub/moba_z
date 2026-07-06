@@ -10,11 +10,16 @@ class ProceduralAssets {
 
   static ui.Image? minionImage;
   static ui.Image? turretImage;
-  static ui.Image? warriorUp;
-  static ui.Image? warriorDown;
-  static ui.Image? warriorSide;
-  static ui.Image? warriorPreHit;
-  static ui.Image? warriorPostHit;
+  static final Map<String, Map<String, ui.Image?>> heroSprites = {
+    'warrior': {'up': null, 'down': null, 'side': null, 'pre_hit': null, 'post_hit': null},
+    'mage': {'up': null, 'down': null, 'side': null, 'pre_hit': null, 'post_hit': null},
+    'assassin': {'up': null, 'down': null, 'side': null, 'pre_hit': null, 'post_hit': null},
+    'marksman': {'up': null, 'down': null, 'side': null, 'pre_hit': null, 'post_hit': null},
+    'support': {'up': null, 'down': null, 'side': null, 'pre_hit': null, 'post_hit': null},
+    'tank': {'up': null, 'down': null, 'side': null, 'pre_hit': null, 'post_hit': null},
+  };
+  static ui.Image? blueCrystalImage;
+  static ui.Image? redCrystalImage;
 
   static Future<ui.Image?> _loadImage(String path) async {
     try {
@@ -32,11 +37,18 @@ class ProceduralAssets {
   static Future<void> loadAssets() async {
     minionImage = await _loadImage('assets/images/minion_sprite.png');
     turretImage = await _loadImage('assets/images/turret_sprite.png');
-    warriorUp = await _loadImage('assets/images/warior/up.png');
-    warriorDown = await _loadImage('assets/images/warior/down.png');
-    warriorSide = await _loadImage('assets/images/warior/side.png');
-    warriorPreHit = await _loadImage('assets/images/warior/pre_hit.png');
-    warriorPostHit = await _loadImage('assets/images/warior/post_hit.png');
+    
+    final classes = ['warrior', 'mage', 'assassin', 'marksman', 'support', 'tank'];
+    final states = ['up', 'down', 'side', 'pre_hit', 'post_hit'];
+    for (final c in classes) {
+      final folder = c == 'warrior' ? 'warior' : c;
+      for (final s in states) {
+        heroSprites[c]![s] = await _loadImage('assets/images/$folder/$s.png');
+      }
+    }
+
+    blueCrystalImage = await _loadImage('assets/images/blue_crystal.png');
+    redCrystalImage = await _loadImage('assets/images/red_crystal.png');
   }
 
   static void drawHero(Canvas canvas, String heroKey, Vector2 position, double angle, double animTime, bool isAlive, Team team, {bool isMoving = false, bool isAttacking = false, bool isMirrored = false}) {
@@ -70,7 +82,8 @@ class ProceduralAssets {
       canvas.rotate(s * 0.087);
     }
     
-    if (heroKey == 'warrior' && warriorSide != null) {
+    final sprites = heroSprites[heroKey];
+    if (sprites != null && sprites['side'] != null && !(sprites['side']!.width == 1 && sprites['side']!.height == 1)) {
       final shadowPaint = Paint()..color = Colors.black.withValues(alpha: 0.25);
       canvas.drawOval(
         Rect.fromCenter(center: const Offset(0, 10), width: 16, height: 6),
@@ -82,7 +95,7 @@ class ProceduralAssets {
 
       if (isAttacking) {
         final progress = (animTime * 3.0) % 1.0;
-        currentImg = progress < 0.2 ? warriorPreHit : warriorPostHit;
+        currentImg = progress < 0.2 ? sprites['pre_hit'] : sprites['post_hit'];
         if (cos(screenAngle) < 0) flipHorizontal = true;
       } else {
         final pi4 = pi / 4;
@@ -91,13 +104,13 @@ class ProceduralAssets {
         if (normAngle < -pi) normAngle += 2 * pi;
 
         if (normAngle > -pi4 && normAngle <= pi4) {
-          currentImg = warriorSide;
+          currentImg = sprites['side'];
         } else if (normAngle > pi4 && normAngle <= 3 * pi4) {
-          currentImg = warriorDown;
+          currentImg = sprites['down'];
         } else if (normAngle < -pi4 && normAngle >= -3 * pi4) {
-          currentImg = warriorUp;
+          currentImg = sprites['up'];
         } else {
-          currentImg = warriorSide;
+          currentImg = sprites['side'];
           flipHorizontal = true;
         }
       }

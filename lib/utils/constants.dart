@@ -70,9 +70,9 @@ class GameConstants {
   static double respawnBaseTime = 5.0;
   static double respawnTimePerLevel = 2.0;
 
-  static const double cameraZoomMin = 0.5;
+  static const double cameraZoomMin = 0.4;
   static const double cameraZoomMax = 1.5;
-  static const double cameraZoomDefault = 1.0;
+  static const double cameraZoomDefault = 0.8;
   static const double cameraSmoothing = 8.0;
 
   static const double healthBarWidth = 48.0;

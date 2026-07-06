@@ -38,12 +38,14 @@ class GameHud extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        _buildTopBar(context),
-        _buildBottomStats(context),
-        _buildZoomControls(context),
-      ],
+    return SafeArea(
+      child: Stack(
+        children: [
+          _buildTopBar(context),
+          _buildBottomStats(context),
+          _buildZoomControls(context),
+        ],
+      ),
     );
   }
 
@@ -54,11 +56,13 @@ class GameHud extends StatelessWidget {
 
     return Positioned(
       top: 16,
-      left: 0,
-      right: 0,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
+      left: 16,
+      right: 16,
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
             decoration: BoxDecoration(
@@ -122,6 +126,7 @@ class GameHud extends StatelessWidget {
           ),
         ],
       ),
+      ),
     );
   }
 
@@ -181,6 +186,7 @@ class GameHud extends StatelessWidget {
   Widget _buildBottomStats(BuildContext context) {
     final hpPercent = maxHealth > 0 ? (health / maxHealth).clamp(0.0, 1.0) : 0.0;
     final manaPercent = maxMana > 0 ? (mana / maxMana).clamp(0.0, 1.0) : 0.0;
+    final double barWidth = (MediaQuery.of(context).size.width * 0.35).clamp(150.0, 300.0);
 
     return Positioned(
       bottom: 24,
@@ -204,9 +210,9 @@ class GameHud extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  _buildLargeResourceBar(hpPercent, const Color(0xFF4CAF50), '${health.toInt()}/${maxHealth.toInt()}'),
+                  _buildLargeResourceBar(hpPercent, const Color(0xFF4CAF50), '${health.toInt()}/${maxHealth.toInt()}', barWidth),
                   const SizedBox(height: 8),
-                  _buildLargeResourceBar(manaPercent, const Color(0xFF2196F3), '${mana.toInt()}/${maxMana.toInt()}'),
+                  _buildLargeResourceBar(manaPercent, const Color(0xFF2196F3), '${mana.toInt()}/${maxMana.toInt()}', barWidth),
                 ],
               ),
               const SizedBox(width: 24),
@@ -234,12 +240,12 @@ class GameHud extends StatelessWidget {
     );
   }
 
-  Widget _buildLargeResourceBar(double percent, Color color, String text) {
+  Widget _buildLargeResourceBar(double percent, Color color, String text, double width) {
     return Stack(
       alignment: Alignment.center,
       children: [
         Container(
-          width: 300,
+          width: width,
           height: 16,
           decoration: BoxDecoration(
             color: Colors.white.withValues(alpha:  0.1),

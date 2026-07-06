@@ -13,35 +13,45 @@ class VirtualJoystick extends StatefulWidget {
 class _VirtualJoystickState extends State<VirtualJoystick> {
   Offset _stickPosition = Offset.zero;
   bool _isDragging = false;
-  final double _baseRadius = 50;
-  final double _stickRadius = 22;
+  late double _baseRadius;
+  late double _stickRadius;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final scale = (MediaQuery.of(context).size.height / 400).clamp(0.6, 1.5);
+    _baseRadius = 50 * scale;
+    _stickRadius = 22 * scale;
+  }
 
   @override
   Widget build(BuildContext context) {
     return Positioned(
-      bottom: 48,
-      left: 48,
-      child: GestureDetector(
-        onPanStart: _onPanStart,
-        onPanUpdate: _onPanUpdate,
-        onPanEnd: _onPanEnd,
-        child: Container(
-          width: _baseRadius * 2 + 20,
-          height: _baseRadius * 2 + 20,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: Colors.white.withValues(alpha:  0.08),
-            border: Border.all(
-              color: Colors.white.withValues(alpha:  _isDragging ? 0.3 : 0.15),
-              width: 2,
+      bottom: 24,
+      left: 24,
+      child: SafeArea(
+        child: GestureDetector(
+          onPanStart: _onPanStart,
+          onPanUpdate: _onPanUpdate,
+          onPanEnd: _onPanEnd,
+          child: Container(
+            width: _baseRadius * 2 + 20,
+            height: _baseRadius * 2 + 20,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white.withValues(alpha:  0.08),
+              border: Border.all(
+                color: Colors.white.withValues(alpha:  _isDragging ? 0.3 : 0.15),
+                width: 2,
+              ),
             ),
-          ),
-          child: CustomPaint(
-            painter: JoystickPainter(
-              stickPosition: _stickPosition,
-              baseRadius: _baseRadius,
-              stickRadius: _stickRadius,
-              isDragging: _isDragging,
+            child: CustomPaint(
+              painter: JoystickPainter(
+                stickPosition: _stickPosition,
+                baseRadius: _baseRadius,
+                stickRadius: _stickRadius,
+                isDragging: _isDragging,
+              ),
             ),
           ),
         ),

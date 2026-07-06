@@ -254,31 +254,33 @@ class _LobbyScreenState extends State<LobbyScreen> with SingleTickerProviderStat
 
     return Scaffold(
       backgroundColor: const Color(0xFF0D1117),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF0D1117), Color(0xFF161B22), Color(0xFF0D1117)],
+      body: SafeArea(
+        child: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFF0D1117), Color(0xFF161B22), Color(0xFF0D1117)],
+            ),
           ),
-        ),
-        child: Center(
-          child: SingleChildScrollView(
-            child: Container(
-              constraints: const BoxConstraints(maxWidth: 600),
-              padding: const EdgeInsets.all(32),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _buildLogo(),
-                  const SizedBox(height: 16),
-                  _buildSubtitle(),
-                  const SizedBox(height: 40),
-                  if (_network == null) _buildInitialSelection(),
-                  if (_network != null) _buildLobbyContent(),
-                  const SizedBox(height: 24),
-                  _buildStatusSection(),
-                ],
+          child: Center(
+            child: SingleChildScrollView(
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 600),
+                padding: const EdgeInsets.all(32),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _buildLogo(),
+                    const SizedBox(height: 16),
+                    _buildSubtitle(),
+                    const SizedBox(height: 40),
+                    if (_network == null) _buildInitialSelection(),
+                    if (_network != null) _buildLobbyContent(),
+                    const SizedBox(height: 24),
+                    _buildStatusSection(),
+                  ],
+                ),
               ),
             ),
           ),
@@ -470,14 +472,17 @@ class _LobbyScreenState extends State<LobbyScreen> with SingleTickerProviderStat
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: const Color(0xFF4CAF50).withValues(alpha: 0.3)),
       ),
-      child: const Row(
+      child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.check_circle, color: Color(0xFF4CAF50)),
-          SizedBox(width: 8),
-          Text(
-            'Connected to Host',
-            style: TextStyle(color: Color(0xFF4CAF50), fontSize: 16),
+          const Icon(Icons.check_circle, color: Color(0xFF4CAF50)),
+          const SizedBox(width: 8),
+          Flexible(
+            child: Text(
+              'Connected to Host',
+              style: const TextStyle(color: Color(0xFF4CAF50), fontSize: 16),
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
         ],
       ),
@@ -609,9 +614,11 @@ class _LobbyScreenState extends State<LobbyScreen> with SingleTickerProviderStat
                 child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white54),
               ),
             if (_isConnecting) const SizedBox(width: 8),
-            Text(
-              _statusMessage,
-              style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 13),
+            Flexible(
+              child: Text(
+                _statusMessage,
+                style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 13),
+              ),
             ),
           ],
         ),
@@ -745,59 +752,63 @@ class _GameCanvasState extends State<GameCanvas> with SingleTickerProviderStateM
     widget.game.setMoveInput(_joystickDelta.dx, _joystickDelta.dy);
     widget.game.setAttackInput(_isAttacking);
     widget.game.update(0.016);
-    setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
-    final stats = widget.game.getLocalHeroStats();
     return Stack(
       children: [
         SizedBox(
           width: widget.width,
           height: widget.height,
           child: CustomPaint(
-            painter: GamePainter(game: widget.game),
+            painter: GamePainter(game: widget.game, repaint: _controller),
           ),
         ),
-        GameHud(
-          health: stats['hp'] as double,
-          maxHealth: stats['maxHp'] as double,
-          mana: stats['mana'] as double,
-          maxMana: stats['maxMana'] as double,
-          gold: stats['gold'] as int,
-          kills: stats['kills'] as int,
-          deaths: stats['deaths'] as int,
-          ping: widget.game.ping,
-          fps: 60.0,
-          networkQuality: widget.game.networkQuality,
-          gameTime: widget.game.gameTime,
-          isHost: widget.game.isHost,
+        AnimatedBuilder(
+          animation: _controller,
+          builder: (context, _) {
+            final stats = widget.game.getLocalHeroStats();
+            return Stack(
+              children: [
+                GameHud(
+                  health: stats['hp'] as double,
+                  maxHealth: stats['maxHp'] as double,
+                  mana: stats['mana'] as double,
+                  maxMana: stats['maxMana'] as double,
+                  gold: stats['gold'] as int,
+                  kills: stats['kills'] as int,
+                  deaths: stats['deaths'] as int,
+                  ping: widget.game.ping,
+                  fps: 60.0,
+                  networkQuality: widget.game.networkQuality,
+                  gameTime: widget.game.gameTime,
+                  isHost: widget.game.isHost,
+                ),
+                SkillButtons(
+                  skill1Cooldown: (stats['skill1Cooldown'] as double?) ?? 0,
+                  skill1MaxCooldown: (stats['skill1MaxCooldown'] as double?) ?? 5,
+                  skill2Cooldown: (stats['skill2Cooldown'] as double?) ?? 0,
+                  skill2MaxCooldown: (stats['skill2MaxCooldown'] as double?) ?? 8,
+                  ultimateCooldown: (stats['ultimateCooldown'] as double?) ?? 0,
+                  ultimateMaxCooldown: (stats['ultimateMaxCooldown'] as double?) ?? 15,
+                  onSkill1Pressed: () => widget.game.useSkill(1),
+                  onSkill2Pressed: () => widget.game.useSkill(2),
+                  onUltimatePressed: () => widget.game.useSkill(3),
+                  onAttackPressed: () {
+                    _isAttacking = true;
+                    Future.delayed(const Duration(milliseconds: 100), () {
+                      _isAttacking = false;
+                    });
+                  },
+                ),
+              ],
+            );
+          },
         ),
         VirtualJoystick(
           onJoystickMove: (delta) {
-            setState(() {
-              _joystickDelta = delta;
-            });
-          },
-        ),
-        SkillButtons(
-          skill1Cooldown: (stats['skill1Cooldown'] as double?) ?? 0,
-          skill1MaxCooldown: (stats['skill1MaxCooldown'] as double?) ?? 5,
-          skill2Cooldown: (stats['skill2Cooldown'] as double?) ?? 0,
-          skill2MaxCooldown: (stats['skill2MaxCooldown'] as double?) ?? 8,
-          ultimateCooldown: (stats['ultimateCooldown'] as double?) ?? 0,
-          ultimateMaxCooldown: (stats['ultimateMaxCooldown'] as double?) ?? 15,
-          onSkill1Pressed: () => widget.game.useSkill(1),
-          onSkill2Pressed: () => widget.game.useSkill(2),
-          onUltimatePressed: () => widget.game.useSkill(3),
-          onAttackPressed: () {
-            setState(() {
-              _isAttacking = true;
-            });
-            Future.delayed(const Duration(milliseconds: 100), () {
-              if (mounted) setState(() { _isAttacking = false; });
-            });
+            _joystickDelta = delta;
           },
         ),
       ],
@@ -808,7 +819,7 @@ class _GameCanvasState extends State<GameCanvas> with SingleTickerProviderStateM
 class GamePainter extends CustomPainter {
   final MobaGame game;
 
-  GamePainter({required this.game});
+  GamePainter({required this.game, super.repaint});
 
   @override
   void paint(Canvas canvas, Size size) {

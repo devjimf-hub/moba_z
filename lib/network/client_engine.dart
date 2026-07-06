@@ -138,7 +138,7 @@ class ClientEngine {
           },
         );
         minion.previousPosition = minion.position.clone();
-        minion.position = pos.clone();
+        minion.targetPosition = pos.clone();
         minion.hp = hp;
         minion.maxHp = maxHp;
         minion.angle = angle;
@@ -160,9 +160,10 @@ class ClientEngine {
         if (_heroes.isNotEmpty && _localHeroIndex >= 0 && _localHeroIndex < _heroes.length && hero.id == _heroes[_localHeroIndex].id) {
           if (hero.position.distanceTo(pos) > 150) {
             hero.position = pos.clone();
+            hero.targetPosition = pos.clone();
           }
         } else {
-          hero.position = pos.clone();
+          hero.targetPosition = pos.clone();
           hero.angle = angle;
         }
         hero.hp = hp;
@@ -229,10 +230,11 @@ class ClientEngine {
     if (_heroes.isNotEmpty && _localHeroIndex >= 0 && _localHeroIndex < _heroes.length && hero.id == _heroes[_localHeroIndex].id) {
       final pos = Vector2(parsed['x'] as double, parsed['y'] as double);
       if (hero.position.distanceTo(pos) > 150) {
-        hero.position = pos;
+        hero.position = pos.clone();
+        hero.targetPosition = pos.clone();
       }
     } else {
-      hero.position = Vector2(parsed['x'] as double, parsed['y'] as double);
+      hero.targetPosition = Vector2(parsed['x'] as double, parsed['y'] as double);
       hero.angle = parsed['angle'] as double;
     }
   }
@@ -379,12 +381,34 @@ class ClientEngine {
 
   void update(double dt, double moveX, double moveY) {
     _gameTime += dt;
+    final double lerpAmount = (dt * 15.0).clamp(0.0, 1.0);
+
     for (final h in _heroes) {
       if (!h.alive && h.respawnTimer > 0) {
         h.respawnTimer = (h.respawnTimer - dt).clamp(0.0, 99.0);
       }
       for (final key in h.cooldowns.keys) {
         h.cooldowns[key] = (h.cooldowns[key]! - dt).clamp(0.0, 99.0);
+      }
+      
+      if (_localHeroIndex < 0 || _heroes.indexOf(h) != _localHeroIndex) {
+        if (h.position.distanceTo(h.targetPosition) > 150) {
+          h.position = h.targetPosition.clone();
+        } else {
+          h.position.x += (h.targetPosition.x - h.position.x) * lerpAmount;
+          h.position.y += (h.targetPosition.y - h.position.y) * lerpAmount;
+        }
+      }
+    }
+
+    for (final m in _minions) {
+      if (m.alive) {
+        if (m.position.distanceTo(m.targetPosition) > 150) {
+          m.position = m.targetPosition.clone();
+        } else {
+          m.position.x += (m.targetPosition.x - m.position.x) * lerpAmount;
+          m.position.y += (m.targetPosition.y - m.position.y) * lerpAmount;
+        }
       }
     }
 
@@ -436,6 +460,7 @@ class ClientHeroState {
   final Team team;
   Vector2 position;
   Vector2 previousPosition;
+  Vector2 targetPosition;
   double hp;
   double maxHp;
   double angle = 0;
@@ -455,7 +480,7 @@ class ClientHeroState {
     required this.hp,
     required this.maxHp,
     required this.alive,
-  }) : previousPosition = position.clone();
+  }) : previousPosition = position.clone(), targetPosition = position.clone();
 }
 
 class ClientMinionState {
@@ -464,6 +489,7 @@ class ClientMinionState {
   final Team team;
   Vector2 position;
   Vector2 previousPosition;
+  Vector2 targetPosition;
   double hp;
   double maxHp;
   double angle = 0;
@@ -478,7 +504,7 @@ class ClientMinionState {
     required this.hp,
     required this.maxHp,
     required this.alive,
-  }) : previousPosition = position.clone();
+  }) : previousPosition = position.clone(), targetPosition = position.clone();
 }
 
 class ClientStructureState {

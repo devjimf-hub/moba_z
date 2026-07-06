@@ -11,7 +11,7 @@ class ConfigManager {
     final gameConfigStr = prefs.getString(_gameConfigKey);
     if (gameConfigStr != null) {
       try {
-        final Map<String, dynamic> gameConfig = jsonDecode(gameConfigStr);
+        final Map<String, dynamic> gameConfig = Map<String, dynamic>.from(jsonDecode(gameConfigStr) as Map);
         applyGameConfig(gameConfig);
       } catch (e) {
         print('Error loading game config: $e');
@@ -21,7 +21,7 @@ class ConfigManager {
     final heroConfigStr = prefs.getString(_heroConfigKey);
     if (heroConfigStr != null) {
       try {
-        final Map<String, dynamic> heroConfig = jsonDecode(heroConfigStr);
+        final Map<String, dynamic> heroConfig = Map<String, dynamic>.from(jsonDecode(heroConfigStr) as Map);
         applyHeroConfig(heroConfig);
       } catch (e) {
         print('Error loading hero config: $e');

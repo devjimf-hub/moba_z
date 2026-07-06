@@ -29,60 +29,63 @@ class SkillButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scale = (MediaQuery.of(context).size.height / 400).clamp(0.6, 1.5);
     return Positioned(
-      bottom: 40,
-      right: 40,
-      child: SizedBox(
-        width: 260,
-        height: 260,
-        child: Stack(
-          children: [
-            Positioned(
-              bottom: 0,
-              right: 150,
-              child: _buildSkillButton(
-                label: 'Q',
-                icon: Icons.flash_on,
-                color: const Color(0xFF2196F3),
-                cooldown: skill1Cooldown,
-                maxCooldown: skill1MaxCooldown,
-                size: 56,
-                onPressed: onSkill1Pressed,
+      bottom: 24,
+      right: 24,
+      child: SafeArea(
+        child: SizedBox(
+          width: 260 * scale,
+          height: 260 * scale,
+          child: Stack(
+            children: [
+              Positioned(
+                bottom: 0,
+                right: 150 * scale,
+                child: _buildSkillButton(
+                  label: 'Q',
+                  icon: Icons.flash_on,
+                  color: const Color(0xFF2196F3),
+                  cooldown: skill1Cooldown,
+                  maxCooldown: skill1MaxCooldown,
+                  size: 56 * scale,
+                  onPressed: onSkill1Pressed,
+                ),
               ),
-            ),
-            Positioned(
-              bottom: 90,
-              right: 110,
-              child: _buildSkillButton(
-                label: 'W',
-                icon: Icons.shield,
-                color: const Color(0xFF4CAF50),
-                cooldown: skill2Cooldown,
-                maxCooldown: skill2MaxCooldown,
-                size: 56,
-                onPressed: onSkill2Pressed,
+              Positioned(
+                bottom: 90 * scale,
+                right: 110 * scale,
+                child: _buildSkillButton(
+                  label: 'W',
+                  icon: Icons.shield,
+                  color: const Color(0xFF4CAF50),
+                  cooldown: skill2Cooldown,
+                  maxCooldown: skill2MaxCooldown,
+                  size: 56 * scale,
+                  onPressed: onSkill2Pressed,
+                ),
               ),
-            ),
-            Positioned(
-              bottom: 140,
-              right: 20,
-              child: _buildSkillButton(
-                label: 'R',
-                icon: Icons.local_fire_department,
-                color: const Color(0xFFFF9800),
-                cooldown: ultimateCooldown,
-                maxCooldown: ultimateMaxCooldown,
-                size: 64,
-                isUltimate: true,
-                onPressed: onUltimatePressed,
+              Positioned(
+                bottom: 140 * scale,
+                right: 20 * scale,
+                child: _buildSkillButton(
+                  label: 'R',
+                  icon: Icons.local_fire_department,
+                  color: const Color(0xFFFF9800),
+                  cooldown: ultimateCooldown,
+                  maxCooldown: ultimateMaxCooldown,
+                  size: 64 * scale,
+                  isUltimate: true,
+                  onPressed: onUltimatePressed,
+                ),
               ),
-            ),
-            Positioned(
-              bottom: 0,
-              right: 0,
-              child: _buildAttackButton(),
-            ),
-          ],
+              Positioned(
+                bottom: 0,
+                right: 0,
+                child: _buildAttackButton(scale),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -181,12 +184,12 @@ class SkillButtons extends StatelessWidget {
     );
   }
 
-  Widget _buildAttackButton() {
+  Widget _buildAttackButton(double scale) {
     return GestureDetector(
       onTap: onAttackPressed,
       child: Container(
-        width: 80,
-        height: 80,
+        width: 80 * scale,
+        height: 80 * scale,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           gradient: const LinearGradient(
@@ -201,16 +204,16 @@ class SkillButtons extends StatelessWidget {
           boxShadow: [
             BoxShadow(
               color: const Color(0xFFF44336).withValues(alpha:  0.4),
-              blurRadius: 12,
-              spreadRadius: 2,
+              blurRadius: 12 * scale,
+              spreadRadius: 2 * scale,
             ),
           ],
         ),
-        child: const Center(
+        child: Center(
           child: Icon(
             Icons.gps_fixed,
             color: Colors.white,
-            size: 40,
+            size: 40 * scale,
           ),
         ),
       ),
